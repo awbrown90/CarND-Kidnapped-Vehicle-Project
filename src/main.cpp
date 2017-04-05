@@ -39,7 +39,9 @@ int main() {
 	 * if you used fused data from multiple sensors, it's difficult to find
 	 * these uncertainties directly.
 	 */
+	
 	double sigma_pos [3] = {0.3, 0.3, 0.01}; // GPS measurement uncertainty [x [m], y [m], theta [rad]]
+	//double sigma_pos [3] = {3.0, 3.0, 0.01}; // GPS measurement uncertainty [x [m], y [m], theta [rad]]
 	double sigma_landmark [2] = {0.3, 0.3}; // Landmark measurement uncertainty [x [m], y [m]]
 
 	// noise generation
@@ -118,14 +120,22 @@ int main() {
 		// Calculate and output the average weighted error of the particle filter over all time steps so far.
 		vector<Particle> particles = pf.particles;
 		int num_particles = particles.size();
-		double highest_weight = 0.0;
+		double highest_weight = -1.0;
 		Particle best_particle;
+		double weight_sum = 0.0;
 		for (int i = 0; i < num_particles; ++i) {
+			//cout << "weight " << particles[i].weight << endl;
 			if (particles[i].weight > highest_weight) {
 				highest_weight = particles[i].weight;
 				best_particle = particles[i];
 			}
+			weight_sum += particles[i].weight;
 		}
+		//cout << "highest w " << highest_weight << endl;
+		//cout << "average w " << weight_sum/num_particles << endl;
+
+		pf.writeBest(best_particle, "./data/best_particles.txt", i);
+		
 		double *avg_error = getError(gt[i].x, gt[i].y, gt[i].theta, best_particle.x, best_particle.y, best_particle.theta);
 
 		for (int j = 0; j < 3; ++j) {
